@@ -14,3 +14,6 @@ jobs:
           python-version: "3.12"
       - run: pip install numpy pytest
       - run: python -m pytest -q
+      - name: round2 bridge
+        working-directory: round2_adjudication_bridge
+        run: PYTHONPATH=src python -m unittest discover -s tests -v

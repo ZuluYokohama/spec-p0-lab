@@ -1,22 +1,23 @@
 {
   "indexing": "0-index-[0,L)",
-  "E_p99": "q >= 512 in [0, L)",
-  "E_H": "q >= L-512 in [0, L)",
-  "empty_p99_policy": "NA",
+  "E_p99_rule": "q >= 512",
+  "E_H_rule": "q >= L-512",
+  "empty_set_verdict": "inapplicable",
   "forbidden_fallbacks": [
     "drop_nan",
     "impute",
-    "reindex_1based",
+    "reindex_after_unblind",
     "shift_cutoff",
     "tail512",
-    "use_entropy_set"
+    "use_entropy_set",
+    "vacuous_pass"
   ],
-  "first_applicable_p99_L": 1024,
   "locked_L": [512, 1024, 2048, 4096],
-  "cardinality": {
+  "cardinality_declared_now": {
     "512": {"p99": 0, "entropy": 512},
     "1024": {"p99": 512, "entropy": 512},
     "2048": {"p99": 1536, "entropy": 512},
     "4096": {"p99": 3584, "entropy": 512}
-  }
+  },
+  "note_1index": "Under 1-index-[1,L], |E_p99(512)|=1. That is a different experiment. Declare it before data or do not use it."
 }

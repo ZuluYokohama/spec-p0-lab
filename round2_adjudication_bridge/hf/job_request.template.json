@@ -1,0 +1,11 @@
+{
+  "frozen_spec_digest": "REPLACE_WITH_64_HEX",
+  "spec_url": "https://huggingface.co/ORG/REPO/resolve/COMMIT/eval_norm.py",
+  "runner_digest": "REPLACE_WITH_64_HEX",
+  "hardware_flavor": "a10g-small",
+  "timeout_seconds": 14400,
+  "hourly_price_usd": 0,
+  "timeout_hours": 4,
+  "max_cost_usd": 0,
+  "secret_names": ["HF_TOKEN"]
+}

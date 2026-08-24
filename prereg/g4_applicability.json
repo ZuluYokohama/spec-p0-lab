@@ -1,0 +1,22 @@
+{
+  "indexing": "0-index-[0,L)",
+  "E_p99": "q >= 512 in [0, L)",
+  "E_H": "q >= L-512 in [0, L)",
+  "empty_p99_policy": "NA",
+  "forbidden_fallbacks": [
+    "drop_nan",
+    "impute",
+    "reindex_1based",
+    "shift_cutoff",
+    "tail512",
+    "use_entropy_set"
+  ],
+  "first_applicable_p99_L": 1024,
+  "locked_L": [512, 1024, 2048, 4096],
+  "cardinality": {
+    "512": {"p99": 0, "entropy": 512},
+    "1024": {"p99": 512, "entropy": 512},
+    "2048": {"p99": 1536, "entropy": 512},
+    "4096": {"p99": 3584, "entropy": 512}
+  }
+}

@@ -1,0 +1,16 @@
+[project]
+name = "round2-bridge"
+version = "0.1.0"
+description = "Fail-closed evidence intake for the locked round-2 norm experiment"
+requires-python = ">=3.10"
+readme = "README.md"
+
+[project.scripts]
+round2-bridge = "round2_bridge.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "round2.bundle.v1",
+  "type": "object",
+  "required": ["schema"],
+  "properties": {
+    "schema": {"const": "round2.bundle.v1"}
+  }
+}

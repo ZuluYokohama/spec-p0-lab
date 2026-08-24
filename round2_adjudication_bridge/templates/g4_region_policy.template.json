@@ -1,0 +1,19 @@
+{
+  "indexing": "0-index-[0,L)",
+  "valid_token_coordinates": "[0, L)",
+  "query_axis": "query_position",
+  "reduction_order": "query_then_head_then_layer",
+  "padding_and_mask": "exclude_pad",
+  "quantile_method": "linear",
+  "nan_policy": "propagate_as_inapplicable",
+  "layer_head_reduction": "mean_over_heads_then_layers",
+  "l512_p99_branch": "NOT_EVALUABLE",
+  "p99_region": "q >= 512",
+  "entropy_region": "(L-512, L)",
+  "cardinality": {
+    "512": {"p99": 0, "entropy": 512},
+    "1024": {"p99": 512, "entropy": 512},
+    "2048": {"p99": 1536, "entropy": 512},
+    "4096": {"p99": 3584, "entropy": 512}
+  }
+}

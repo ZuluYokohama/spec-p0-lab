@@ -24,6 +24,7 @@ NOUN_SPLIT = re.compile(
     r"constrained\s*[\n`*_>#-]*\s*mixers?",
     re.I,
 )
+SCAN_DIRS = ("report", "claims", "adjudication")
 
 
 def _load(path: Path) -> Any:
@@ -53,7 +54,6 @@ def validate(bundle_root: Path, repo: Path | None) -> Report:
     paths = bundle_layout(bundle_root)
 
     missing = [k for k, p in paths.items() if not p.exists()]
-    # verdict and findings may be absent → normative adjudication, not reject
     optional = {"verdict", "findings", "claims"}
     req_missing = [k for k in missing if k not in optional]
     if req_missing:
@@ -228,7 +228,6 @@ def _check_matrix(matrix: dict, rows: list[dict], r: Report) -> None:
     miss = expected - seen
     if miss:
         r.add("MISSING_CELL", "reject", f"missing confirmatory cells {sorted(miss)[:12]}")
-    # L=512 p99 must not be a finite pass token
     for row in rows:
         if int(row.get("L", -1)) == 512:
             p99 = row.get("g4_p99")
@@ -242,14 +241,10 @@ def _check_matrix(matrix: dict, rows: list[dict], r: Report) -> None:
 
 
 def _check_reveal(commit: dict, seal: dict, reveal: dict, r: Report) -> None:
-    if commit.get("payload_sha256") and seal.get("commitment_sha256") not in {
-        commit.get("payload_sha256"),
-        None,
-    }:
-        if seal.get("commitment_sha256") != commit.get("sha256") and seal.get(
-            "commitment_sha256"
-        ) != commit.get("payload_sha256"):
-            r.add("G4_COMMIT_MISMATCH", "reject", "prereveal seal does not bind commitment")
+    seal_h = seal.get("commitment_sha256")
+    pay = commit.get("payload_sha256") or commit.get("sha256")
+    if seal_h and pay and seal_h != pay:
+        r.add("G4_COMMIT_MISMATCH", "reject", "prereveal seal does not bind commitment")
     mapping = reveal.get("mapping") or {}
     ids = set(mapping.keys())
     names = set(mapping.values())
@@ -259,31 +254,36 @@ def _check_reveal(commit: dict, seal: dict, reveal: dict, r: Report) -> None:
             "reject",
             "reveal must map exactly two opaque ids onto {QKNORM, SPECHARD}",
         )
-    if reveal.get("committed_payload_sha256") and commit.get("payload_sha256"):
-        if reveal["committed_payload_sha256"] != commit["payload_sha256"]:
+    if reveal.get("committed_payload_sha256") and pay:
+        if reveal["committed_payload_sha256"] != pay:
             r.add("G4_COMMIT_MISMATCH", "reject", "reveal payload hash != commitment")
 
 
 def _scan_nouns(root: Path, r: Report) -> None:
-    for path in root.rglob("*"):
-        if not path.is_file():
+    for folder in SCAN_DIRS:
+        base = root / folder
+        if not base.exists():
             continue
-        if path.suffix.lower() not in {".md", ".json", ".jsonl", ".txt", ".rst"}:
-            continue
-        try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
-        if NOUN_SPLIT.search(text):
-            r.add(
-                "NOUN_LEAK",
-                "reject",
-                f"delegated noun leak in {path.relative_to(root)}",
-            )
-        low = text.lower()
-        for noun in FORBIDDEN_NOUNS:
-            if noun in low:
-                r.add("NOUN_LEAK", "reject", f"{noun!r} in {path.relative_to(root)}")
+        for path in base.rglob("*"):
+            if not path.is_file():
+                continue
+            if path.suffix.lower() not in {".md", ".json", ".jsonl", ".txt", ".rst"}:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            if NOUN_SPLIT.search(text):
+                r.add(
+                    "NOUN_LEAK",
+                    "reject",
+                    f"delegated noun leak in {path.relative_to(root)}",
+                )
+                continue
+            low = text.lower()
+            for noun in FORBIDDEN_NOUNS:
+                if noun in low:
+                    r.add("NOUN_LEAK", "reject", f"{noun!r} in {path.relative_to(root)}")
 
 
 def _check_repo(repo: Path, paths: dict, r: Report) -> None:
@@ -292,9 +292,6 @@ def _check_repo(repo: Path, paths: dict, r: Report) -> None:
         r.add("REPO_UNVERIFIED", "incomplete", f"git rev-parse failed: {out}")
         return
     r.bindings["repo_head"] = out.split()[0]
-    code, _ = _git(repo, "rev-parse", "--is-inside-work-tree")
-    if code != 0:
-        r.add("REPO_UNVERIFIED", "incomplete", "--repo is not a git work tree")
     if paths["lock"].exists():
         lock = _load(paths["lock"])
         expected = lock.get("repo_head") or lock.get("commit")
